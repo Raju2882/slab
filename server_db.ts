@@ -1,0 +1,207 @@
+import fs from "fs";
+import path from "path";
+import { University, Scholarship, Testimonial, ContactLead, User } from "./src/types";
+
+const DB_DIR = path.join(process.cwd(), "data");
+const DB_FILE = path.join(DB_DIR, "db.json");
+
+interface DatabaseSchema {
+  users: User[];
+  universities: University[];
+  scholarships: Scholarship[];
+  testimonials: Testimonial[];
+  leads: ContactLead[];
+}
+
+const DEFAULT_USERS: User[] = [
+  {
+    id: "u1",
+    email: "admin@exploreuniversity.com",
+    role: "admin",
+    name: "Education Admin Console"
+  }
+];
+
+const DEFAULT_UNIVERSITIES: University[] = [
+  {
+    id: "univ-1",
+    name: "Tbilisi State Medical University",
+    country: "Georgia",
+    city: "Tbilisi",
+    established: 1918,
+    globalRank: 1850,
+    courses: ["MBBS", "MD", "General Medicine", "Dentistry", "Pharmacy"],
+    tuitionFeePerYear: 8000,
+    currency: "USD",
+    description: "One of the most prestigious medical universities in Eastern Europe, possessing state-of-the-art laboratory complexes and research clinics with global recognition.",
+    highlights: ["WHO & NMC approved curriculum", "English medium instructions", "100+ years of academic heritage", "Over 10,000 international graduates"],
+    accreditation: ["World Health Organization (WHO)", "National Medical Commission (NMC)", "WFME", "FAIMER"],
+    image: "https://images.unsplash.com/photo-1562774053-701939374585?auto=format&fit=crop&q=80&w=1000"
+  },
+  {
+    id: "univ-3",
+    name: "Kursk State Medical University",
+    country: "Russia",
+    city: "Kursk",
+    established: 1935,
+    globalRank: 2200,
+    courses: ["MBBS", "General Medicine", "Pediatrics", "Clinical Psychology"],
+    tuitionFeePerYear: 5500,
+    currency: "USD",
+    description: "The first university in Russian Federation to offer complete English-medium instruction tracks, attracting thousands of international medical students since 1994.",
+    highlights: ["Fully English medium medical courses", "A-grade university rating", "Active clinical exposure in local state hospitals", "Extremely dynamic student groups"],
+    accreditation: ["UNESCO Approved", "World Directory of Medical Schools", "NMC India", "GMC UK Council"],
+    image: "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&q=80&w=1000"
+  },
+  {
+    id: "univ-4",
+    name: "Asian Medical Institute",
+    country: "Kyrgyzstan",
+    city: "Kant",
+    established: 2004,
+    globalRank: 4200,
+    courses: ["MBBS", "MD", "Nursing", "Dentistry"],
+    tuitionFeePerYear: 3200,
+    currency: "USD",
+    description: "Recognized as a leading budget medical institute in Central Asia, equipped with advanced simulated training environments and expert international faculty panels.",
+    highlights: ["Extremely affordable premium medical program", "On-campus hostel and Indian food options", "Simulated digital medical training platforms", "Comprehensive licensed exam coachings (NExT/USMLE)"],
+    accreditation: ["Ministry of Education and Health Kyrgyzstan", "NMC (formerly MCI)", "WHO Directory", "FAIMER List"],
+    image: "https://images.unsplash.com/photo-1592280771190-3e2e4d571952?auto=format&fit=crop&q=80&w=1000"
+  }
+];
+
+const DEFAULT_SCHOLARSHIPS: Scholarship[] = [
+  {
+    id: "schol-2",
+    name: "Eastern Europe Medical Excellence Grant",
+    universityId: "univ-1",
+    universityName: "Tbilisi State Medical University",
+    country: "Georgia",
+    coverage: "Partial",
+    value: "50% Tuition Fee waiver for pre-clinical years",
+    eligibility: "Entrance test score above 90% or top-tier performance in high school biosciences",
+    deadline: "2026-07-30",
+    description: "Sponsored directly by the Dean's excellence committee, intended to promote outstanding talent in General Medicine and Dentistry courses."
+  },
+  {
+    id: "schol-3",
+    name: "Budget Medical Opportunity Subsidy",
+    country: "Kyrgyzstan",
+    coverage: "Stipend Only",
+    value: "On-Campus Free Accommodation & $100 monthly stipend",
+    eligibility: "Financially challenged students who secure at least 80% total average marks",
+    deadline: "2026-09-01",
+    description: "A specialized scholarship framework supporting students from South Asia and developing countries to pursue low-budget standard medical studies."
+  }
+];
+
+const DEFAULT_TESTIMONIALS: Testimonial[] = [
+  {
+    id: "t-1",
+    studentName: "Ananya Sharma",
+    course: "General Medicine (MD/MBBS)",
+    university: "Tbilisi State Medical University",
+    country: "Georgia",
+    rating: 5,
+    text: "Deciding to pursue medical studies in Georgia was a massive step, but the counseling, mock interviews, and endless documentation help from the consultancy turned it into an exciting, completely stress-free process. Today, I'm clinical-certified and studying in state-of-the-art facilities!",
+    avatarUrl: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=200",
+    date: "2026-04-10"
+  },
+  {
+    id: "t-3",
+    studentName: "Rahul Deshmukh",
+    course: "MBBS (English Medium)",
+    university: "Kursk State Medical University",
+    country: "Russia",
+    rating: 4,
+    text: "Complete English instruction in Russia is exactly what Kursk excels in. The administrative consultants managed our visas, tickets, and airport escorts inside Russia with absolute professional care. Truly an exceptional agency for high-end medical consultancy.",
+    avatarUrl: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=200",
+    date: "2026-05-18"
+  }
+];
+
+const DEFAULT_LEADS: ContactLead[] = [
+  {
+    id: "lead-1",
+    fullName: "Arjun Verma",
+    email: "arjun.verma@gmail.com",
+    phone: "+91 9876543210",
+    selectedCountry: "Georgia",
+    preferredCourse: "MBBS",
+    message: "I completed high school with 92% in biology and would like to understand the complete admission procedure for Tbilisi State Medical University for the 2026 intake.",
+    status: "New",
+    createdAt: "2026-05-25T08:30:00Z"
+  },
+  {
+    id: "lead-2",
+    fullName: "Kamala Begum",
+    email: "kamala.b@yahoo.com",
+    phone: "+91 9123456789",
+    selectedCountry: "Kazakhstan",
+    preferredCourse: "B.Tech Computer Science",
+    message: "Interested in technical scholarships and dual-degree pathways at Al-Farabi University.",
+    status: "In Progress",
+    createdAt: "2026-05-26T14:20:00Z"
+  },
+  {
+    id: "lead-3",
+    fullName: "Aisha Bibi",
+    email: "aisha.med@gmail.com",
+    phone: "+92 3123456780",
+    selectedCountry: "Kyrgyzstan",
+    preferredCourse: "MBBS",
+    message: "What is the total estimated budget including lodging, medical insurance, and hostel mess facilities at Asian Medical Institute?",
+    status: "Contacted",
+    createdAt: "2026-05-27T10:15:00Z"
+  },
+  {
+    id: "lead-4",
+    fullName: "Siddharth Sen",
+    email: "siddharth.sen@gmail.com",
+    phone: "+91 9988776655",
+    selectedCountry: "Russia",
+    preferredCourse: "MBBS",
+    message: "Looking for direct clinical pathways on Kursk State. Ready with NEET scores.",
+    status: "Enrolled",
+    createdAt: "2026-05-28T16:05:00Z"
+  }
+];
+
+export function getDatabase(): DatabaseSchema {
+  if (!fs.existsSync(DB_DIR)) {
+    fs.mkdirSync(DB_DIR, { recursive: true });
+  }
+
+  if (!fs.existsSync(DB_FILE)) {
+    const freshDb: DatabaseSchema = {
+      users: DEFAULT_USERS,
+      universities: DEFAULT_UNIVERSITIES,
+      scholarships: DEFAULT_SCHOLARSHIPS,
+      testimonials: DEFAULT_TESTIMONIALS,
+      leads: DEFAULT_LEADS
+    };
+    fs.writeFileSync(DB_FILE, JSON.stringify(freshDb, null, 2), "utf8");
+    return freshDb;
+  }
+
+  try {
+    const data = fs.readFileSync(DB_FILE, "utf8");
+    return JSON.parse(data) as DatabaseSchema;
+  } catch (error) {
+    console.error("Error reading database file, returning default:", error);
+    return {
+      users: DEFAULT_USERS,
+      universities: DEFAULT_UNIVERSITIES,
+      scholarships: DEFAULT_SCHOLARSHIPS,
+      testimonials: DEFAULT_TESTIMONIALS,
+      leads: DEFAULT_LEADS
+    };
+  }
+}
+
+export function saveDatabase(db: DatabaseSchema) {
+  if (!fs.existsSync(DB_DIR)) {
+    fs.mkdirSync(DB_DIR, { recursive: true });
+  }
+  fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2), "utf8");
+}

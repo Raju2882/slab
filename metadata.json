@@ -1,0 +1,6 @@
+{
+  "name": "Explore My University Core",
+  "description": "Premium elite education consultancy and university explorer platform featuring dark luxury UI, live student inquiry panel, and scholarship portal.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
